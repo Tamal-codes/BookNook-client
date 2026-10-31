@@ -23,9 +23,9 @@ const navLinks = [
 ];
 
 const btnBase =
-  "inline-flex items-center justify-center rounded-full px-5 py-2 text-sm font-semibold transition-all duration-200 outline-none focus-visible:ring-3 focus-visible:ring-ring/50";
-const btnPrimary = `${btnBase} bg-primary text-primary-foreground shadow-sm hover:-translate-y-0.5 hover:shadow-md`;
-const btnOutline = `${btnBase} border border-border text-foreground hover:bg-muted`;
+  "inline-flex items-center justify-center rounded-full px-4 py-1.5 text-sm font-semibold transition-all duration-200 outline-none focus-visible:ring-2 focus-visible:ring-purple-500/50";
+const btnPrimary = `${btnBase} bg-purple-600 text-white shadow-sm hover:-translate-y-0.5 hover:bg-purple-700 hover:shadow-md`;
+const btnOutline = `${btnBase} border border-purple-200 text-purple-700 hover:bg-purple-50`;
 
 const Navbar = () => {
   const pathname = usePathname();
@@ -62,22 +62,22 @@ const Navbar = () => {
       className={cn(
         "sticky top-0 z-50 w-full border-b transition-all duration-300",
         scrolled
-          ? "border-border/70 bg-background/80 shadow-sm backdrop-blur-lg"
-          : "border-transparent bg-background"
+          ? "border-purple-100 bg-white/80 shadow-sm backdrop-blur-lg"
+          : "border-transparent bg-white"
       )}
     >
-      <div className="mx-auto flex h-16 w-full max-w-6xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
+      <div className="mx-auto flex h-14 w-full max-w-7xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
         {/* Logo */}
         <Link
           href="/"
           aria-label="BookNook home"
-          className="group flex shrink-0 items-center gap-2.5 rounded-lg outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
+          className="group flex shrink-0 items-center gap-2 rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-purple-500/50"
         >
-          <span className="flex size-10 items-center justify-center rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 text-white shadow-md transition-transform duration-300 group-hover:-rotate-6 group-hover:scale-105">
-            <BookOpen className="size-5" aria-hidden="true" />
+          <span className="flex size-8 items-center justify-center rounded-lg bg-gradient-to-br from-purple-500 to-violet-700 text-white shadow-md transition-transform duration-300 group-hover:-rotate-6 group-hover:scale-105">
+            <BookOpen className="size-4" aria-hidden="true" />
           </span>
-          <span className="text-xl font-bold tracking-tight">
-            Book<span className="text-amber-600">Nook</span>
+          <span className="text-lg font-bold tracking-tight">
+            Book<span className="text-purple-600">Nook</span>
           </span>
         </Link>
 
@@ -91,23 +91,20 @@ const Navbar = () => {
                 href={href}
                 aria-current={active ? "page" : undefined}
                 className={cn(
-                  "relative rounded-full px-4 py-2 text-sm font-medium transition-colors outline-none focus-visible:ring-3 focus-visible:ring-ring/50",
+                  "relative rounded-full px-3.5 py-1.5 text-sm font-medium transition-colors outline-none focus-visible:ring-2 focus-visible:ring-purple-500/50",
                   active
-                    ? "bg-amber-500/10 text-amber-700 dark:text-amber-400"
-                    : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                    ? "bg-purple-100 text-purple-700"
+                    : "text-gray-600 hover:bg-purple-50 hover:text-purple-700"
                 )}
               >
                 {label}
-                {active && (
-                  <span className="absolute inset-x-4 -bottom-0.5 h-0.5 rounded-full bg-amber-500" />
-                )}
               </Link>
             );
           })}
         </nav>
 
         {/* Login / Register (desktop) */}
-        <div className="hidden items-center gap-3 lg:flex">
+        <div className="hidden items-center gap-2 lg:flex">
           <Link href="/login" className={btnOutline}>
             Login
           </Link>
@@ -123,7 +120,7 @@ const Navbar = () => {
           aria-expanded={isOpen}
           aria-controls="mobile-navigation"
           aria-label={isOpen ? "Close navigation menu" : "Open navigation menu"}
-          className="flex size-10 items-center justify-center rounded-xl border border-border text-foreground transition-colors outline-none hover:bg-muted focus-visible:ring-3 focus-visible:ring-ring/50 lg:hidden"
+          className="flex size-9 items-center justify-center rounded-lg border border-purple-200 text-purple-700 transition-colors outline-none hover:bg-purple-50 focus-visible:ring-2 focus-visible:ring-purple-500/50 lg:hidden"
         >
           {isOpen ? <X className="size-5" /> : <Menu className="size-5" />}
         </button>
@@ -134,13 +131,13 @@ const Navbar = () => {
         id="mobile-navigation"
         className={cn(
           "grid transition-all duration-300 lg:hidden",
-          isOpen ? "grid-rows-[1fr] border-t border-border/70" : "grid-rows-[0fr]"
+          isOpen ? "grid-rows-[1fr] border-t border-purple-100" : "grid-rows-[0fr]"
         )}
       >
         <div className="overflow-hidden">
           <nav
             aria-label="Mobile"
-            className="mx-auto flex w-full max-w-6xl flex-col gap-1 px-4 py-4 sm:px-6"
+            className="mx-auto flex w-full max-w-7xl flex-col gap-1 px-4 py-3 sm:px-6"
           >
             {navLinks.map(({ href, label, icon: Icon }) => {
               const active = isActive(href);
@@ -150,10 +147,10 @@ const Navbar = () => {
                   href={href}
                   aria-current={active ? "page" : undefined}
                   className={cn(
-                    "flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium transition-colors",
+                    "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
                     active
-                      ? "bg-amber-500/10 text-amber-700 dark:text-amber-400"
-                      : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                      ? "bg-purple-100 text-purple-700"
+                      : "text-gray-600 hover:bg-purple-50 hover:text-purple-700"
                   )}
                 >
                   <Icon className="size-4" aria-hidden="true" />
@@ -162,7 +159,7 @@ const Navbar = () => {
               );
             })}
 
-            <div className="mt-3 flex flex-col gap-2 border-t border-border/70 pt-4">
+            <div className="mt-2 flex flex-col gap-2 border-t border-purple-100 pt-3">
               <Link href="/login" className={btnOutline}>
                 Login
               </Link>
