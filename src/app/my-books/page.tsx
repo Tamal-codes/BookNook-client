@@ -5,6 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import toast from "react-hot-toast";
 import { Trash2, Pencil } from "lucide-react";
+import { currentUser } from "@/lib/currentUser";
 
 type Book = {
   _id: string;
@@ -24,7 +25,7 @@ export default function MyBooksPage() {
   useEffect(() => {
     document.title = "BookNook | My Books";
 
-    fetch("http://localhost:8000/books")
+    fetch(`http://localhost:8000/books?email=${encodeURIComponent(currentUser.email)}`)
       .then((res) => res.json())
       .then((data) => setBooks(data))
       .catch(() => toast.error("Could not load books."))

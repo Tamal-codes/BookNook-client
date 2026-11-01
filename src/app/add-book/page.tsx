@@ -1,16 +1,16 @@
 "use client";
 
 import { useState } from "react";
+import toast from "react-hot-toast";
+import { currentUser } from "@/lib/currentUser";
 
 const categories = ["Fiction", "Science", "History", "Kids", "Others"];
 
 export default function AddBookPage() {
   const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setMessage(null);
     setLoading(true);
 
     const form = e.currentTarget;
@@ -23,9 +23,8 @@ export default function AddBookPage() {
       image: formData.get("image"),
       description: formData.get("description"),
       totalCopies: Number(formData.get("totalCopies")),
-      // Temporary until login is added
-      userName: "Demo User",
-      userEmail: "demo@example.com",
+      userName: currentUser.name,
+      userEmail: currentUser.email,
     };
 
     try {
@@ -37,13 +36,13 @@ export default function AddBookPage() {
       const data = await res.json();
 
       if (data.acknowledged) {
-        setMessage({ type: "success", text: "Book added successfully!" });
+        toast.success("Book added successfully.");
         form.reset();
       } else {
-        setMessage({ type: "error", text: "Could not add the book. Try again." });
+        toast.error("Could not add the book. Try again.");
       }
     } catch {
-      setMessage({ type: "error", text: "Server is not reachable. Is it running?" });
+      toast.error("Server is not reachable.");
     } finally {
       setLoading(false);
     }
@@ -109,26 +108,13 @@ export default function AddBookPage() {
           <div className="grid gap-5 sm:grid-cols-2">
             <div>
               <label htmlFor="userName" className={labelClass}>Your Name</label>
-              <input id="userName" type="text" value="Demo User" readOnly className={`${inputClass} bg-gray-50 text-gray-500`} />
+              <input id="userName" type="text" value={currentUser.name} readOnly className={`${inputClass} bg-gray-50 text-gray-500`} />
             </div>
             <div>
               <label htmlFor="userEmail" className={labelClass}>Your Email</label>
-              <input id="userEmail" type="email" value="demo@example.com" readOnly className={`${inputClass} bg-gray-50 text-gray-500`} />
+              <input id="userEmail" type="email" value={currentUser.email} readOnly className={`${inputClass} bg-gray-50 text-gray-500`} />
             </div>
           </div>
-
-          {message && (
-            <p
-              role="status"
-              className={`rounded-lg px-4 py-3 text-sm font-medium ${
-                message.type === "success"
-                  ? "bg-green-50 text-green-700"
-                  : "bg-red-50 text-red-700"
-              }`}
-            >
-              {message.text}
-            </p>
-          )}
 
           <button
             type="submit"
