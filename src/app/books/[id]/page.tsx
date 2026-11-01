@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowLeft, Calendar, Copy, User } from "lucide-react";
+import BorrowButton from "@/components/BorrowButton";
 
 type BookDetails = {
   _id: string;
@@ -62,8 +63,6 @@ export default async function BookDetailsPage({
     );
   }
 
-  const available = book.totalCopies > 0;
-
   return (
     <section className="bg-purple-50/40 py-12 sm:py-16">
       <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -119,13 +118,11 @@ export default async function BookDetailsPage({
               </li>
             </ul>
 
-            <button
-              type="button"
-              disabled={!available}
-              className="mt-8 w-fit rounded-full bg-purple-600 px-8 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-purple-700 disabled:cursor-not-allowed disabled:bg-gray-300 disabled:text-gray-500"
-            >
-              {available ? "Borrow This Book" : "Not Available"}
-            </button>
+            <BorrowButton
+              bookId={book._id}
+              bookTitle={book.title}
+              totalCopies={book.totalCopies}
+            />
           </div>
         </div>
       </div>
