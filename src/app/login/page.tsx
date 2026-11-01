@@ -63,15 +63,6 @@ function LoginForm() {
           <div>
             <label htmlFor="password" className={labelClass}>Password</label>
             <input id="password" name="password" type="password" required placeholder="Your password" className={inputClass} />
-            <div className="mt-2 text-right">
-              <button
-                type="button"
-                onClick={() => toast("Password reset is coming soon.")}
-                className="text-xs font-medium text-purple-700 hover:underline"
-              >
-                Forgot Password?
-              </button>
-            </div>
           </div>
 
           <button
