@@ -4,6 +4,7 @@ import { useState } from "react";
 import toast from "react-hot-toast";
 import { currentUser } from "@/lib/currentUser";
 
+
 const categories = ["Fiction", "Science", "History", "Kids", "Others"];
 
 export default function AddBookPage() {
