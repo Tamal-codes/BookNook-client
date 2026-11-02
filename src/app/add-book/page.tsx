@@ -1,17 +1,23 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
-import { currentUser } from "@/lib/currentUser";
-
+import { authClient } from "@/lib/auth-client";
 
 const categories = ["Fiction", "Science", "History", "Kids", "Others"];
 
 export default function AddBookPage() {
+  const { data: session } = authClient.useSession();
+  const user = session?.user;
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    document.title = "BookNook | Add Book";
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    if (!user) return;
     setLoading(true);
 
     const form = e.currentTarget;
@@ -24,8 +30,8 @@ export default function AddBookPage() {
       image: formData.get("image"),
       description: formData.get("description"),
       totalCopies: Number(formData.get("totalCopies")),
-      userName: currentUser.name,
-      userEmail: currentUser.email,
+      userName: user.name,
+      userEmail: user.email,
     };
 
     try {
@@ -109,17 +115,17 @@ export default function AddBookPage() {
           <div className="grid gap-5 sm:grid-cols-2">
             <div>
               <label htmlFor="userName" className={labelClass}>Your Name</label>
-              <input id="userName" type="text" value={currentUser.name} readOnly className={`${inputClass} bg-gray-50 text-gray-500`} />
+              <input id="userName" type="text" value={user?.name ?? ""} readOnly className={`${inputClass} bg-gray-50 text-gray-500`} />
             </div>
             <div>
               <label htmlFor="userEmail" className={labelClass}>Your Email</label>
-              <input id="userEmail" type="email" value={currentUser.email} readOnly className={`${inputClass} bg-gray-50 text-gray-500`} />
+              <input id="userEmail" type="email" value={user?.email ?? ""} readOnly className={`${inputClass} bg-gray-50 text-gray-500`} />
             </div>
           </div>
 
           <button
             type="submit"
-            disabled={loading}
+            disabled={loading || !user}
             className="w-full rounded-full bg-purple-600 px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-purple-700 disabled:cursor-not-allowed disabled:opacity-60"
           >
             {loading ? "Adding..." : "Add Book"}
