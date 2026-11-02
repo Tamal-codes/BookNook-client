@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
-import { currentUser } from "@/lib/currentUser";
+import { authClient } from "@/lib/auth-client";
 
 type Props = {
   bookId: string;
@@ -13,17 +13,25 @@ type Props = {
 
 const BorrowButton = ({ bookId, bookTitle, totalCopies }: Props) => {
   const router = useRouter();
+  const { data: session } = authClient.useSession();
+  const user = session?.user;
+
   const [open, setOpen] = useState(false);
   const [saving, setSaving] = useState(false);
   const [returnDate, setReturnDate] = useState("");
 
   const available = totalCopies > 0;
 
-  // Earliest allowed return date = tomorrow
- 
-
+  // Earliest allowed return date = tomorrow (calculated once)
+  const [tomorrow] = useState(() => {
+    const d = new Date();
+    d.setDate(d.getDate() + 1);
+    return d.toISOString().split("T")[0];
+  });
+  
   const handleBorrow = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    if (!user) return;
     setSaving(true);
 
     try {
@@ -32,8 +40,8 @@ const BorrowButton = ({ bookId, bookTitle, totalCopies }: Props) => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           bookId,
-          userName: currentUser.name,
-          userEmail: currentUser.email,
+          userName: user.name,
+          userEmail: user.email,
           returnDate,
         }),
       });
@@ -86,7 +94,7 @@ const BorrowButton = ({ bookId, bookTitle, totalCopies }: Props) => {
                 <input
                   id="b-name"
                   type="text"
-                  value={currentUser.name}
+                  value={user?.name ?? ""}
                   readOnly
                   className="mt-1 w-full rounded-lg border border-purple-200 bg-gray-50 px-4 py-2.5 text-sm text-gray-500 outline-none"
                 />
@@ -98,7 +106,7 @@ const BorrowButton = ({ bookId, bookTitle, totalCopies }: Props) => {
                 <input
                   id="b-email"
                   type="email"
-                  value={currentUser.email}
+                  value={user?.email ?? ""}
                   readOnly
                   className="mt-1 w-full rounded-lg border border-purple-200 bg-gray-50 px-4 py-2.5 text-sm text-gray-500 outline-none"
                 />
@@ -111,7 +119,7 @@ const BorrowButton = ({ bookId, bookTitle, totalCopies }: Props) => {
                   id="b-return"
                   type="date"
                   required
-                
+                  min={tomorrow}
                   value={returnDate}
                   onChange={(e) => setReturnDate(e.target.value)}
                   className="mt-1 w-full rounded-lg border border-purple-200 bg-white px-4 py-2.5 text-sm outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20"
@@ -130,7 +138,7 @@ const BorrowButton = ({ bookId, bookTitle, totalCopies }: Props) => {
               </button>
               <button
                 type="submit"
-                disabled={saving}
+                disabled={saving || !user}
                 className="rounded-full bg-purple-600 px-5 py-2 text-sm font-semibold text-white hover:bg-purple-700 disabled:opacity-60"
               >
                 {saving ? "Borrowing..." : "Confirm Borrow"}

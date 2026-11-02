@@ -1,155 +1,179 @@
 "use client";
 
-import { use, useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import Image from "next/image";
+import Link from "next/link";
 import toast from "react-hot-toast";
-
-const categories = ["Fiction", "Science", "History", "Kids", "Others"];
+import { Trash2, Pencil } from "lucide-react";
+import { authClient } from "@/lib/auth-client";
 
 type Book = {
+  _id: string;
   title: string;
   author: string;
   category: string;
   image: string;
-  description: string;
   totalCopies: number;
 };
 
-export default function EditBookPage({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}) {
-  const { id } = use(params);
-  const router = useRouter();
-  const [book, setBook] = useState<Book | null>(null);
+export default function MyBooksPage() {
+  const { data: session } = authClient.useSession();
+  const email = session?.user?.email;
+
+  const [books, setBooks] = useState<Book[]>([]);
   const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<Book | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
-    document.title = "BookNook | Edit Book";
+    document.title = "BookNook | My Books";
+  }, []);
 
-    fetch(`http://localhost:8000/books/${id}`)
-      .then((res) => {
-        if (!res.ok) throw new Error("not found");
-        return res.json();
-      })
-      .then((data) => setBook(data))
-      .catch(() => toast.error("Could not load this book."))
+  useEffect(() => {
+    if (!email) return;
+
+    fetch(`http://localhost:8000/books?email=${encodeURIComponent(email)}`)
+      .then((res) => res.json())
+      .then((data) => setBooks(data))
+      .catch(() => toast.error("Could not load books."))
       .finally(() => setLoading(false));
-  }, [id]);
+  }, [email]);
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    setSaving(true);
-
-    const formData = new FormData(e.currentTarget);
-    const updated = {
-      title: formData.get("title"),
-      author: formData.get("author"),
-      category: formData.get("category"),
-      image: formData.get("image"),
-      description: formData.get("description"),
-      totalCopies: Number(formData.get("totalCopies")),
-    };
+  const handleDelete = async () => {
+    if (!deleteTarget) return;
+    setDeleting(true);
 
     try {
-      const res = await fetch(`http://localhost:8000/books/${id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(updated),
+      const res = await fetch(`http://localhost:8000/books/${deleteTarget._id}`, {
+        method: "DELETE",
       });
       const data = await res.json();
 
-      if (data.acknowledged) {
-        toast.success("Book updated successfully.");
-        router.push("/my-books");
+      if (data.deletedCount === 1) {
+        setBooks((prev) => prev.filter((b) => b._id !== deleteTarget._id));
+        toast.success("Book deleted successfully.");
       } else {
-        toast.error("Could not update the book.");
+        toast.error("Could not delete the book.");
       }
     } catch {
       toast.error("Server is not reachable.");
     } finally {
-      setSaving(false);
+      setDeleting(false);
+      setDeleteTarget(null);
     }
   };
 
-  const inputClass =
-    "mt-1 w-full rounded-lg border border-purple-200 bg-white px-4 py-2.5 text-sm outline-none transition focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20";
-  const labelClass = "block text-sm font-medium text-gray-700";
-
-  if (loading) {
-    return (
-      <div className="flex justify-center py-24">
-        <div className="size-10 animate-spin rounded-full border-4 border-purple-200 border-t-purple-600" />
-      </div>
-    );
-  }
-
-  if (!book) {
-    return (
-      <p className="py-24 text-center text-gray-600">Book not found.</p>
-    );
-  }
-
   return (
     <section className="bg-purple-50/40 py-12 sm:py-16">
-      <div className="mx-auto w-full max-w-2xl px-4 sm:px-6">
-        <div className="text-center">
+      <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-2xl text-center">
           <h1 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
-            Edit Book
+            My Books
           </h1>
-          <p className="mt-2 text-gray-600">Update the details and save.</p>
+          <p className="mt-3 text-gray-600">Manage the books you have added.</p>
         </div>
 
-        <form
-          onSubmit={handleSubmit}
-          className="mt-10 space-y-5 rounded-2xl border border-purple-100 bg-white p-6 shadow-sm sm:p-8"
-        >
-          <div>
-            <label htmlFor="title" className={labelClass}>Book Title</label>
-            <input id="title" name="title" type="text" required defaultValue={book.title} className={inputClass} />
+        {loading ? (
+          <div className="mt-16 flex justify-center">
+            <div className="size-10 animate-spin rounded-full border-4 border-purple-200 border-t-purple-600" />
           </div>
-
-          <div>
-            <label htmlFor="author" className={labelClass}>Author Name</label>
-            <input id="author" name="author" type="text" required defaultValue={book.author} className={inputClass} />
-          </div>
-
-          <div className="grid gap-5 sm:grid-cols-2">
-            <div>
-              <label htmlFor="category" className={labelClass}>Category</label>
-              <select id="category" name="category" required defaultValue={book.category} className={inputClass}>
-                {categories.map((c) => (
-                  <option key={c} value={c}>{c}</option>
+        ) : books.length === 0 ? (
+          <p className="mt-12 text-center text-gray-500">
+            You have not added any books yet.
+          </p>
+        ) : (
+          <div className="mt-10 overflow-x-auto rounded-2xl border border-purple-100 bg-white shadow-sm">
+            <table className="w-full min-w-[640px] text-left text-sm">
+              <thead className="bg-purple-50 text-xs uppercase tracking-wider text-purple-700">
+                <tr>
+                  <th className="px-5 py-3">Book</th>
+                  <th className="px-5 py-3">Category</th>
+                  <th className="px-5 py-3">Copies</th>
+                  <th className="px-5 py-3 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-purple-100">
+                {books.map((book) => (
+                  <tr key={book._id}>
+                    <td className="px-5 py-4">
+                      <div className="flex items-center gap-4">
+                        <div className="relative h-16 w-12 shrink-0 overflow-hidden rounded-md bg-purple-50">
+                          <Image
+                            src={book.image}
+                            alt={`Cover of ${book.title}`}
+                            fill
+                            sizes="48px"
+                            className="object-cover"
+                          />
+                        </div>
+                        <div className="min-w-0">
+                          <p className="truncate font-semibold text-gray-900">{book.title}</p>
+                          <p className="truncate text-gray-500">by {book.author}</p>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-5 py-4 text-gray-700">{book.category}</td>
+                    <td className="px-5 py-4 text-gray-700">{book.totalCopies}</td>
+                    <td className="px-5 py-4">
+                      <div className="flex justify-end gap-2">
+                        <Link
+                          href={`/my-books/edit/${book._id}`}
+                          className="inline-flex items-center gap-1.5 rounded-full border border-purple-200 px-4 py-1.5 text-xs font-semibold text-purple-700 hover:bg-purple-50"
+                        >
+                          <Pencil className="size-3.5" aria-hidden="true" />
+                          Edit
+                        </Link>
+                        <button
+                          type="button"
+                          onClick={() => setDeleteTarget(book)}
+                          className="inline-flex items-center gap-1.5 rounded-full bg-red-50 px-4 py-1.5 text-xs font-semibold text-red-600 hover:bg-red-100"
+                        >
+                          <Trash2 className="size-3.5" aria-hidden="true" />
+                          Delete
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
                 ))}
-              </select>
-            </div>
-            <div>
-              <label htmlFor="totalCopies" className={labelClass}>Total Copies</label>
-              <input id="totalCopies" name="totalCopies" type="number" min={0} required defaultValue={book.totalCopies} className={inputClass} />
-            </div>
+              </tbody>
+            </table>
           </div>
-
-          <div>
-            <label htmlFor="image" className={labelClass}>Book Image URL</label>
-            <input id="image" name="image" type="url" required defaultValue={book.image} className={inputClass} />
-          </div>
-
-          <div>
-            <label htmlFor="description" className={labelClass}>Short Description</label>
-            <textarea id="description" name="description" rows={4} required defaultValue={book.description} className={inputClass} />
-          </div>
-
-          <button
-            type="submit"
-            disabled={saving}
-            className="w-full rounded-full bg-purple-600 px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-purple-700 disabled:cursor-not-allowed disabled:opacity-60"
-          >
-            {saving ? "Saving..." : "Save Changes"}
-          </button>
-        </form>
+        )}
       </div>
+
+      {deleteTarget && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4"
+        >
+          <div className="w-full max-w-sm rounded-2xl bg-white p-6 shadow-xl">
+            <h2 className="text-lg font-bold text-gray-900">Delete this book?</h2>
+            <p className="mt-2 text-sm text-gray-600">
+              <span className="font-medium">{deleteTarget.title}</span> will be
+              removed permanently. This cannot be undone.
+            </p>
+            <div className="mt-6 flex justify-end gap-3">
+              <button
+                type="button"
+                onClick={() => setDeleteTarget(null)}
+                disabled={deleting}
+                className="rounded-full border border-gray-200 px-5 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleDelete}
+                disabled={deleting}
+                className="rounded-full bg-red-600 px-5 py-2 text-sm font-semibold text-white hover:bg-red-700 disabled:opacity-60"
+              >
+                {deleting ? "Deleting..." : "Delete"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </section>
   );
 }
