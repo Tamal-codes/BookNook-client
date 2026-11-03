@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import { authClient } from "@/lib/auth-client";
+import { getToken } from "@/lib/getToken";
 
 const categories = ["Fiction", "Science", "History", "Kids", "Others"];
 
@@ -35,9 +36,14 @@ export default function AddBookPage() {
     };
 
     try {
+      const token = await getToken();
+
       const res = await fetch("http://localhost:8000/books", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
         body: JSON.stringify(book),
       });
       const data = await res.json();
@@ -46,7 +52,7 @@ export default function AddBookPage() {
         toast.success("Book added successfully.");
         form.reset();
       } else {
-        toast.error("Could not add the book. Try again.");
+        toast.error(data.message || "Could not add the book. Try again.");
       }
     } catch {
       toast.error("Server is not reachable.");
