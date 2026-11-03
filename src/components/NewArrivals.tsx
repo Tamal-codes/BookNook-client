@@ -4,7 +4,7 @@ import BookCard, { type Book } from "@/components/BookCard";
 
 async function getLatestBooks(): Promise<Book[]> {
   try {
-    const res = await fetch("http://localhost:8000/books?limit=6", {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/books?limit=6`, {
       cache: "no-store",
     });
     if (!res.ok) return [];

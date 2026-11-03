@@ -42,7 +42,7 @@ export default function MyBorrowsPage() {
 
     getToken()
       .then((token) =>
-        fetch("http://localhost:8000/borrows", {
+        fetch(`${process.env.NEXT_PUBLIC_API_URL}/borrows`, {
           headers: { Authorization: `Bearer ${token}` },
         })
       )
@@ -58,11 +58,15 @@ export default function MyBorrowsPage() {
 
     try {
       const token = await getToken();
-
-      const res = await fetch(`http://localhost:8000/borrows/${returnTarget._id}`, {
-        method: "DELETE",
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/borrows/${returnTarget._id}`,
+        {
+          method: "DELETE",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
       const data = await res.json();
 
       if (res.ok && data.deletedCount === 1) {

@@ -18,7 +18,7 @@ type BookDetails = {
 
 async function getBook(id: string): Promise<BookDetails | null> {
   try {
-    const res = await fetch(`http://localhost:8000/books/${id}`, {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/books/${id}`, {
       cache: "no-store",
     });
     if (!res.ok) return null;
