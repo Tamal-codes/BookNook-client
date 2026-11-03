@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import { authClient } from "@/lib/auth-client";
+import { getToken } from "@/lib/getToken";
 
 type Props = {
   bookId: string;
@@ -22,22 +23,26 @@ const BorrowButton = ({ bookId, bookTitle, totalCopies }: Props) => {
 
   const available = totalCopies > 0;
 
-  // Earliest allowed return date = tomorrow (calculated once)
   const [tomorrow] = useState(() => {
     const d = new Date();
     d.setDate(d.getDate() + 1);
     return d.toISOString().split("T")[0];
   });
-  
+
   const handleBorrow = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!user) return;
     setSaving(true);
 
     try {
+      const token = await getToken();
+
       const res = await fetch("http://localhost:8000/borrows", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
         body: JSON.stringify({
           bookId,
           userName: user.name,

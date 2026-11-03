@@ -5,7 +5,8 @@ import Image from "next/image";
 import Link from "next/link";
 import toast from "react-hot-toast";
 import { Trash2, Pencil } from "lucide-react";
-import { currentUser } from "@/lib/currentUser";
+import { authClient } from "@/lib/auth-client";
+import { getToken } from "@/lib/getToken";
 
 type Book = {
   _id: string;
@@ -17,6 +18,9 @@ type Book = {
 };
 
 export default function MyBooksPage() {
+  const { data: session } = authClient.useSession();
+  const email = session?.user?.email;
+
   const [books, setBooks] = useState<Book[]>([]);
   const [loading, setLoading] = useState(true);
   const [deleteTarget, setDeleteTarget] = useState<Book | null>(null);
@@ -24,21 +28,28 @@ export default function MyBooksPage() {
 
   useEffect(() => {
     document.title = "BookNook | My Books";
+  }, []);
 
-    fetch(`http://localhost:8000/books?email=${encodeURIComponent(currentUser.email)}`)
+  useEffect(() => {
+    if (!email) return;
+
+    fetch(`http://localhost:8000/books?email=${encodeURIComponent(email)}`)
       .then((res) => res.json())
       .then((data) => setBooks(data))
       .catch(() => toast.error("Could not load books."))
       .finally(() => setLoading(false));
-  }, []);
+  }, [email]);
 
   const handleDelete = async () => {
     if (!deleteTarget) return;
     setDeleting(true);
 
     try {
+      const token = await getToken();
+
       const res = await fetch(`http://localhost:8000/books/${deleteTarget._id}`, {
         method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` },
       });
       const data = await res.json();
 
@@ -46,7 +57,7 @@ export default function MyBooksPage() {
         setBooks((prev) => prev.filter((b) => b._id !== deleteTarget._id));
         toast.success("Book deleted successfully.");
       } else {
-        toast.error("Could not delete the book.");
+        toast.error(data.message || "Could not delete the book.");
       }
     } catch {
       toast.error("Server is not reachable.");

@@ -6,6 +6,7 @@ import Link from "next/link";
 import toast from "react-hot-toast";
 import { Undo2 } from "lucide-react";
 import { authClient } from "@/lib/auth-client";
+import { getToken } from "@/lib/getToken";
 
 type Borrow = {
   _id: string;
@@ -39,7 +40,12 @@ export default function MyBorrowsPage() {
   useEffect(() => {
     if (!email) return;
 
-    fetch(`http://localhost:8000/borrows?email=${encodeURIComponent(email)}`)
+    getToken()
+      .then((token) =>
+        fetch("http://localhost:8000/borrows", {
+          headers: { Authorization: `Bearer ${token}` },
+        })
+      )
       .then((res) => res.json())
       .then((data) => setBorrows(Array.isArray(data) ? data : []))
       .catch(() => toast.error("Could not load your borrowed books."))
@@ -51,8 +57,11 @@ export default function MyBorrowsPage() {
     setReturning(true);
 
     try {
+      const token = await getToken();
+
       const res = await fetch(`http://localhost:8000/borrows/${returnTarget._id}`, {
         method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` },
       });
       const data = await res.json();
 
