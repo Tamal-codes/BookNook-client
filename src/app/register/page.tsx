@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useEffect, useState } from "react";
@@ -34,7 +33,7 @@ export default function RegisterPage() {
     document.title = "BookNook | Register";
   }, []);
 
-  // Email and password registration
+  
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
@@ -66,10 +65,10 @@ export default function RegisterPage() {
         return;
       }
 
-      toast.success("Registered successfully. Please log in.");
+      toast.success("Registered successfully. Welcome to BookNook!");
 
-      await authClient.signOut();
-      router.push("/login");
+      router.push("/");
+      router.refresh();
     } catch (error) {
       console.error("Registration error:", error);
       toast.error("Something went wrong during registration.");
@@ -78,7 +77,7 @@ export default function RegisterPage() {
     }
   };
 
-  // Google registration / login
+  
   const handleGoogleSignIn = async () => {
     setGoogleLoading(true);
 
