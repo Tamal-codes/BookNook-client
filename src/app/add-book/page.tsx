@@ -7,6 +7,20 @@ import { getToken } from "@/lib/getToken";
 
 const categories = ["Fiction", "Science", "History", "Kids", "Others"];
 
+async function uploadImage(file: File) {
+  const body = new FormData();
+  body.append("image", file);
+
+  const res = await fetch(
+    `https://api.imgbb.com/1/upload?key=${process.env.NEXT_PUBLIC_IMGBB_KEY}`,
+    { method: "POST", body }
+  );
+  const data = await res.json();
+
+  if (!data.success) throw new Error("Image upload failed");
+  return data.data.url as string;
+}
+
 export default function AddBookPage() {
   const { data: session } = authClient.useSession();
   const user = session?.user;
@@ -23,20 +37,22 @@ export default function AddBookPage() {
 
     const form = e.currentTarget;
     const formData = new FormData(form);
-
-    const book = {
-      title: formData.get("title"),
-      author: formData.get("author"),
-      category: formData.get("category"),
-      image: formData.get("image"),
-      description: formData.get("description"),
-      totalCopies: Number(formData.get("totalCopies")),
-      userName: user.name,
-      userEmail: user.email,
-    };
+    const file = formData.get("image") as File;
 
     try {
+      const imageUrl = await uploadImage(file);
       const token = await getToken();
+
+      const book = {
+        title: formData.get("title"),
+        author: formData.get("author"),
+        category: formData.get("category"),
+        image: imageUrl,
+        description: formData.get("description"),
+        totalCopies: Number(formData.get("totalCopies")),
+        userName: user.name,
+        userEmail: user.email,
+      };
 
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/books`, {
         method: "POST",
@@ -54,8 +70,10 @@ export default function AddBookPage() {
       } else {
         toast.error(data.message || "Could not add the book. Try again.");
       }
-    } catch {
-      toast.error("Server is not reachable.");
+    } catch (err) {
+      toast.error(
+        err instanceof Error ? err.message : "Something went wrong."
+      );
     } finally {
       setLoading(false);
     }
@@ -109,8 +127,8 @@ export default function AddBookPage() {
           </div>
 
           <div>
-            <label htmlFor="image" className={labelClass}>Book Image URL</label>
-            <input id="image" name="image" type="url" required placeholder="https://example.com/cover.jpg" className={inputClass} />
+            <label htmlFor="image" className={labelClass}>Book Image</label>
+            <input id="image" name="image" type="file" accept="image/*" required className={inputClass} />
           </div>
 
           <div>
@@ -134,7 +152,7 @@ export default function AddBookPage() {
             disabled={loading || !user}
             className="w-full rounded-full bg-purple-600 px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-purple-700 disabled:cursor-not-allowed disabled:opacity-60"
           >
-            {loading ? "Adding..." : "Add Book"}
+            {loading ? "Uploading and adding..." : "Add Book"}
           </button>
         </form>
       </div>
