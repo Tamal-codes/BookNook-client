@@ -12,7 +12,7 @@ async function uploadImage(file: File) {
   body.append("image", file);
 
   const res = await fetch(
-    `https://api.imgbb.com/1/upload?key=${process.env.NEXT_PUBLIC_IMGBB_KEY}`,
+    `https://api.imgbb.com/1/upload?key=${process.env.NEXT_PUBLIC_IMGBB_API_KEY}`,
     { method: "POST", body }
   );
   const data = await res.json();
